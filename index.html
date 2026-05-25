@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Magic! ✨</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Chewy&display=swap" rel="stylesheet">
+<style>
+:root {
+  --add-color: #FF6B6B;
+  --sub-color: #3ABEFF;
+  --mul-color: #A855F7;
+  --gold: #FFD700;
+  --radius: 26px;
+  --shadow: 0 10px 40px rgba(0,0,0,0.18);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  min-height: 100vh;
+  font-family: 'Baloo 2', cursive;
+  background: #1a1a2e;
+  overflow-x: hidden;
+}
+
+/* Stars */
+.stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+.star {
+  position: absolute; background: white; border-radius: 50%;
+  animation: twinkle ease-in-out infinite alternate;
+}
+@keyframes twinkle {
+  from { opacity: 0.1; transform: scale(0.8); }
+  to   { opacity: 1;   transform: scale(1.3); }
+}
+
+#app {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 28px 16px 80px;
+}
+
+.game-title {
+  font-family: 'Chewy', cursive;
+  font-size: clamp(2.4rem, 8vw, 4rem);
+  background: linear-gradient(135deg, #FFD700 0%, #FF6B6B 40%, #A855F7 80%, #3ABEFF 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  text-align: center; margin-bottom: 4px;
+  filter: drop-shadow(0 2px 8px rgba(255,215,0,0.3)); letter-spacing: 2px;
+}
+.game-sub {
+  color: rgba(255,255,255,0.5); text-align: center;
+  font-size: 1rem; font-weight: 600; margin-bottom: 28px; letter-spacing: 1px;
+}
+
+/* ── SETUP CARD ── */
+.setup-card {
+  background: #16213e;
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius);
+  padding: 30px 26px 34px;
+  max-width: 500px; width: 100%;
+  box-shadow: var(--shadow);
+  animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes popIn {
+  from { transform: scale(0.75) translateY(30px); opacity: 0; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.section-label {
+  font-family: 'Chewy', cursive;
+  font-size: 1.1rem; color: rgba(255,255,255,0.45);
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 10px; margin-top: 22px;
+}
+.section-label:first-child { margin-top: 0; }
+
+/* Range dropdowns */
+.range-row {
+  display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center;
+}
+.range-arrow {
+  color: rgba(255,255,255,0.35);
+  font-family: 'Chewy', cursive; font-size: 1.4rem; text-align: center;
+}
+.styled-select {
+  background: #0f3460;
+  border: 2px solid rgba(255,255,255,0.15);
+  border-radius: 14px;
+  color: white;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.05rem; font-weight: 700;
+  padding: 12px 14px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  width: 100%;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,0.4)' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 34px;
+}
+.styled-select:focus { border-color: var(--gold); background-color: #163a6a; }
+.styled-select option { background: #16213e; }
+
+/* ── OPERATION BUTTONS — BIG & PROMINENT ── */
+.op-row {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+}
+.op-btn {
+  border-radius: 18px;
+  padding: 0;
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
+  border: 3px solid transparent;
+  background: #0d2748;
+  overflow: hidden;
+  position: relative;
+}
+.op-btn-inner {
+  padding: 16px 8px 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.op-icon {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Chewy', cursive;
+  font-size: 2rem;
+  transition: transform 0.2s;
+}
+.op-label {
+  font-family: 'Chewy', cursive;
+  font-size: 1rem; letter-spacing: 0.5px;
+  color: rgba(255,255,255,0.55);
+  transition: color 0.2s;
+}
+
+/* unselected hover */
+.op-btn:hover:not(.selected) { background: #122d55; border-color: rgba(255,255,255,0.2); }
+.op-btn:hover .op-icon { transform: scale(1.1); }
+
+/* selected states — full colour wash */
+.op-btn.op-add.selected {
+  border-color: var(--add-color);
+  background: linear-gradient(160deg, rgba(255,107,107,0.28) 0%, rgba(255,107,107,0.08) 100%);
+  box-shadow: 0 0 0 4px rgba(255,107,107,0.25), 0 8px 24px rgba(255,107,107,0.3);
+}
+.op-btn.op-sub.selected {
+  border-color: var(--sub-color);
+  background: linear-gradient(160deg, rgba(58,190,255,0.25) 0%, rgba(58,190,255,0.06) 100%);
+  box-shadow: 0 0 0 4px rgba(58,190,255,0.22), 0 8px 24px rgba(58,190,255,0.28);
+}
+.op-btn.op-mul.selected {
+  border-color: var(--mul-color);
+  background: linear-gradient(160deg, rgba(168,85,247,0.28) 0%, rgba(168,85,247,0.07) 100%);
+  box-shadow: 0 0 0 4px rgba(168,85,247,0.25), 0 8px 24px rgba(168,85,247,0.3);
+}
+.op-btn.op-add .op-icon { background: rgba(255,107,107,0.18); color: var(--add-color); }
+.op-btn.op-sub .op-icon { background: rgba(58,190,255,0.15); color: var(--sub-color); }
+.op-btn.op-mul .op-icon { background: rgba(168,85,247,0.18); color: var(--mul-color); }
+.op-btn.op-add.selected .op-icon { background: rgba(255,107,107,0.35); }
+.op-btn.op-sub.selected .op-icon { background: rgba(58,190,255,0.3); }
+.op-btn.op-mul.selected .op-icon { background: rgba(168,85,247,0.35); }
+.op-btn.selected .op-label { color: white; font-size: 1.05rem; }
+
+/* checkmark badge when selected */
+.op-btn .op-check {
+  position: absolute; top: 8px; right: 10px;
+  font-size: 1.1rem; opacity: 0;
+  transition: opacity 0.2s;
+}
+.op-btn.selected .op-check { opacity: 1; }
+
+/* Q count */
+.qcount-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.qcount-btn {
+  border: 2px solid rgba(255,255,255,0.12);
+  border-radius: 12px; padding: 12px;
+  cursor: pointer; text-align: center;
+  font-family: 'Chewy', cursive; font-size: 1.4rem;
+  color: white; background: #0f3460; transition: all 0.2s;
+}
+.qcount-btn.selected {
+  border-color: var(--gold);
+  background: rgba(255,215,0,0.15);
+  box-shadow: 0 0 0 3px rgba(255,215,0,0.2);
+  color: var(--gold);
+}
+.qcount-btn:hover:not(.selected) { border-color: rgba(255,255,255,0.3); }
+
+.start-btn {
+  width: 100%; margin-top: 26px; padding: 16px;
+  border: none; border-radius: 18px;
+  font-family: 'Chewy', cursive; font-size: 1.6rem; letter-spacing: 2px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #FFD700, #FF9B00);
+  color: #1a1a2e;
+  box-shadow: 0 6px 0 #b8800a, 0 10px 24px rgba(255,215,0,0.35);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #b8800a, 0 14px 30px rgba(255,215,0,0.4); }
+.start-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #b8800a; }
+.start-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ── GAME CARD ── */
+.game-card {
+  background: #16213e;
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius);
+  padding: 22px 20px 26px;
+  max-width: 500px; width: 100%;
+  box-shadow: var(--shadow);
+  animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* HUD */
+.hud {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+}
+.hud-stat { display: flex; flex-direction: column; align-items: center; font-family: 'Chewy', cursive; }
+.hud-val { font-size: 1.55rem; color: white; line-height: 1; }
+.hud-label { font-size: 0.68rem; color: rgba(255,255,255,0.38); letter-spacing: 1px; text-transform: uppercase; }
+
+/* Big prominent op badge */
+.hud-op-badge {
+  font-family: 'Chewy', cursive;
+  font-size: 1.25rem; letter-spacing: 1px;
+  padding: 8px 20px; border-radius: 50px;
+  display: flex; align-items: center; gap: 8px;
+  color: white;
+  border: 2.5px solid transparent;
+}
+.hud-op-badge .badge-sym {
+  font-size: 1.7rem; line-height: 1;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.hud-op-badge.add { background: rgba(255,107,107,0.22); border-color: var(--add-color); }
+.hud-op-badge.add .badge-sym { background: var(--add-color); }
+.hud-op-badge.sub { background: rgba(58,190,255,0.18); border-color: var(--sub-color); }
+.hud-op-badge.sub .badge-sym { background: var(--sub-color); }
+.hud-op-badge.mul { background: rgba(168,85,247,0.2); border-color: var(--mul-color); }
+.hud-op-badge.mul .badge-sym { background: var(--mul-color); }
+
+/* Progress */
+.progress-track {
+  background: rgba(255,255,255,0.08); border-radius: 20px;
+  height: 10px; margin-bottom: 20px; overflow: hidden;
+}
+.progress-fill { height: 100%; border-radius: 20px; transition: width 0.5s ease; }
+.progress-fill.add { background: linear-gradient(90deg, var(--add-color), #ffb347); }
+.progress-fill.sub { background: linear-gradient(90deg, var(--sub-color), #67e8f9); }
+.progress-fill.mul { background: linear-gradient(90deg, var(--mul-color), #f472b6); }
+
+/* ── COLUMN-FORM QUESTION ── */
+.question-box {
+  border-radius: 22px;
+  padding: 24px 20px 20px;
+  margin-bottom: 20px;
+  border: 2.5px solid transparent;
+  position: relative; overflow: hidden;
+  background: rgba(255,255,255,0.04);
+  display: flex; flex-direction: column; align-items: center;
+}
+.question-box.add { border-color: rgba(255,107,107,0.45); background: rgba(255,107,107,0.07); }
+.question-box.sub { border-color: rgba(58,190,255,0.4); background: rgba(58,190,255,0.06); }
+.question-box.mul { border-color: rgba(168,85,247,0.45); background: rgba(168,85,247,0.07); }
+
+.q-emoji { font-size: 1.8rem; margin-bottom: 14px; display: block; animation: float 2.5s ease-in-out infinite alternate; }
+@keyframes float { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+
+/* Column layout — like a written sum */
+.q-column {
+  display: flex; flex-direction: column; align-items: flex-end;
+  gap: 4px; min-width: 130px;
+}
+.q-col-row {
+  display: flex; align-items: center; gap: 14px;
+  width: 100%;
+}
+.q-col-sym {
+  font-family: 'Chewy', cursive;
+  font-size: clamp(2rem, 7vw, 2.8rem);
+  min-width: 36px; text-align: center; line-height: 1;
+}
+.q-col-sym.add { color: var(--add-color); }
+.q-col-sym.sub { color: var(--sub-color); }
+.q-col-sym.mul { color: var(--mul-color); }
+.q-col-num {
+  font-family: 'Chewy', cursive;
+  font-size: clamp(2.6rem, 9vw, 3.6rem);
+  color: white; line-height: 1;
+  text-align: right; flex: 1;
+  text-shadow: 0 3px 10px rgba(0,0,0,0.3);
+}
+.q-divider {
+  width: 100%; height: 3px; border-radius: 2px;
+  margin: 6px 0;
+  background: rgba(255,255,255,0.2);
+}
+.q-divider.add { background: linear-gradient(90deg, transparent, var(--add-color), transparent); }
+.q-divider.sub { background: linear-gradient(90deg, transparent, var(--sub-color), transparent); }
+.q-divider.mul { background: linear-gradient(90deg, transparent, var(--mul-color), transparent); }
+
+.q-blank-row {
+  display: flex; align-items: center; gap: 14px; width: 100%;
+}
+.q-blank {
+  font-family: 'Chewy', cursive;
+  font-size: clamp(2.6rem, 9vw, 3.6rem);
+  color: rgba(255,255,255,0.25);
+  text-align: right; flex: 1;
+  border-bottom: 3px dashed rgba(255,255,255,0.25);
+  padding-bottom: 2px;
+}
+.q-hint {
+  font-size: 0.82rem; color: rgba(255,255,255,0.3);
+  margin-top: 14px; font-style: italic; text-align: center;
+}
+
+/* ── OPTIONS ── */
+.opts-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-bottom: 14px;
+}
+.opt-btn {
+  border: 2.5px solid rgba(255,255,255,0.12); border-radius: 18px;
+  padding: 18px 10px;
+  font-family: 'Chewy', cursive; font-size: clamp(1.8rem, 6vw, 2.4rem);
+  color: white; background: rgba(255,255,255,0.06);
+  cursor: pointer;
+  transition: transform 0.12s, border-color 0.15s, background 0.15s;
+  text-align: center; line-height: 1;
+}
+.opt-btn:hover:not(:disabled) {
+  transform: translateY(-4px) scale(1.04);
+  background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.35);
+}
+.opt-btn:active:not(:disabled) { transform: translateY(2px) scale(0.97); }
+.opt-btn.correct {
+  border-color: #4ade80; background: rgba(74,222,128,0.2);
+  animation: correctBounce 0.5s ease;
+  box-shadow: 0 0 20px rgba(74,222,128,0.4);
+}
+.opt-btn.wrong {
+  border-color: #f87171; background: rgba(248,113,113,0.2);
+  animation: wrongShake 0.45s ease;
+}
+@keyframes correctBounce {
+  0% { transform: scale(1); } 35% { transform: scale(1.18) rotate(-4deg); }
+  65% { transform: scale(0.94) rotate(3deg); } 100% { transform: scale(1); }
+}
+@keyframes wrongShake {
+  0%,100% { transform: translateX(0); }
+  20%,60%  { transform: translateX(-10px) rotate(-2deg); }
+  40%,80%  { transform: translateX(10px) rotate(2deg); }
+}
+
+.feedback-bar {
+  min-height: 2.1rem; text-align: center;
+  font-family: 'Chewy', cursive; font-size: 1.25rem; letter-spacing: 0.5px;
+  margin-bottom: 8px; animation: fadeUp 0.3s ease;
+}
+@keyframes fadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+.feedback-bar.good { color: #4ade80; }
+.feedback-bar.bad  { color: #f87171; }
+
+.next-btn {
+  width: 100%; padding: 14px; border: none; border-radius: 16px;
+  font-family: 'Chewy', cursive; font-size: 1.35rem; letter-spacing: 1px;
+  cursor: pointer; transition: transform 0.12s, box-shadow 0.12s, opacity 0.2s;
+  opacity: 0; pointer-events: none;
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  color: #14532d; box-shadow: 0 5px 0 #166534;
+}
+.next-btn.show { opacity: 1; pointer-events: all; }
+.next-btn:hover { transform: translateY(-2px); box-shadow: 0 7px 0 #166534; }
+.next-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #166534; }
+
+/* ── RESULTS ── */
+.results-card {
+  background: #16213e; border: 2px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius); padding: 34px 26px 30px;
+  max-width: 480px; width: 100%;
+  text-align: center; box-shadow: var(--shadow);
+  animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+.results-medal { font-size: 5rem; display: block; margin-bottom: 10px; animation: medalBounce 1s ease-in-out infinite alternate; }
+@keyframes medalBounce { from { transform: translateY(0) scale(1); } to { transform: translateY(-14px) scale(1.08); } }
+.results-title { font-family: 'Chewy', cursive; font-size: 2.1rem; color: white; margin-bottom: 6px; }
+.results-score {
+  font-family: 'Chewy', cursive; font-size: 4.5rem;
+  background: linear-gradient(135deg,#FFD700,#FF9B00);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1;
+}
+.results-denom { font-size: 0.9rem; color: rgba(255,255,255,0.38); margin-bottom: 14px; font-weight: 700; }
+.results-stars { font-size: 2.6rem; letter-spacing: 6px; margin-bottom: 10px; }
+.results-msg { color: rgba(255,255,255,0.6); font-size: 1rem; font-weight: 700; margin-bottom: 24px; line-height: 1.5; }
+.results-breakdown { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 24px; }
+.breakdown-pill { border-radius: 14px; padding: 10px 6px; text-align: center; font-family: 'Chewy', cursive; }
+.breakdown-pill .bp-num { font-size: 1.55rem; display: block; }
+.breakdown-pill .bp-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.65; }
+.breakdown-pill.add-pill { background: rgba(255,107,107,0.18); color: var(--add-color); }
+.breakdown-pill.sub-pill { background: rgba(58,190,255,0.14); color: var(--sub-color); }
+.breakdown-pill.mul-pill { background: rgba(168,85,247,0.18); color: var(--mul-color); }
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.retry-btn, .menu-btn {
+  padding: 14px; border: none; border-radius: 16px;
+  font-family: 'Chewy', cursive; font-size: 1.2rem; cursor: pointer; transition: transform 0.1s;
+}
+.retry-btn { background: linear-gradient(135deg,#A855F7,#7C3AED); color: white; box-shadow: 0 5px 0 #5b21b6; }
+.retry-btn:hover { transform: translateY(-2px); }
+.retry-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #5b21b6; }
+.menu-btn { background: rgba(255,255,255,0.09); color: rgba(255,255,255,0.75); border: 2px solid rgba(255,255,255,0.14); }
+.menu-btn:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+
+/* Confetti */
+.confetti-piece {
+  position: fixed; width: 10px; height: 14px; border-radius: 3px;
+  opacity: 0; pointer-events: none; z-index: 99;
+  animation: cfFall linear forwards;
+}
+@keyframes cfFall {
+  0%   { opacity: 1; transform: translateY(-20px) rotate(0deg) scale(1); }
+  100% { opacity: 0; transform: translateY(100vh) rotate(900deg) scale(0.5); }
+}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div id="app">
+  <div class="game-title">✨ Math Magic!</div>
+  <div class="game-sub">🚀 The Adventure Math Game</div>
+  <div id="screen"></div>
+</div>
+
+<script>
+// Starfield
+(function(){
+  const s = document.getElementById('stars');
+  for (let i = 0; i < 90; i++) {
+    const el = document.createElement('div');
+    el.className = 'star';
+    const size = Math.random() * 3 + 1;
+    el.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${1.5+Math.random()*3}s;animation-delay:${Math.random()*3}s;`;
+    s.appendChild(el);
+  }
+})();
+
+// ── State ──
+const state = {
+  screen: 'setup',
+  numFrom: 1,
+  numTo: 20,
+  operations: new Set(),
+  questionCount: 10,
+  questions: [], current: 0, score: 0,
+  answered: false,
+  breakdown: { add:{correct:0,total:0}, sub:{correct:0,total:0}, mul:{correct:0,total:0} }
+};
+
+// ── Helpers ──
+function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+function shuffle(arr)   { return [...arr].sort(() => Math.random() - 0.5); }
+
+// ── Question generation ──
+const OP_HINTS = {
+  add: ['🍎 Combine them together!', '🌟 Add them all up!', '➕ Count them all!'],
+  sub: ['🧮 Take some away!', '🐣 How many are left?', '➖ Remove and count!'],
+  mul: ['✖️ Groups of equal numbers!', '🔢 Repeated adding!', '⭐ Count in equal groups!'],
+};
+const Q_EMOJIS = {
+  add: ['🍎','🎈','⭐','🌸','🦋','🍕','🐶','🌈','🎁','🦄'],
+  sub: ['🍊','🎀','🌙','🐟','🍦','🎠','🐱','🌺','🚂','🦊'],
+  mul: ['🌟','🎸','🐬','🦀','🏀','🍄','🎡','🦁','🌊','🎯'],
+};
+
+function genQuestion(op) {
+  const lo = state.numFrom, hi = state.numTo;
+  let a, b, answer;
+  if (op === 'add') {
+    a = randInt(lo, hi); b = randInt(lo, hi);
+    answer = a + b;
+  } else if (op === 'sub') {
+    a = randInt(lo, hi); b = randInt(lo, a);
+    answer = a - b;
+  } else {
+    // For multiply, use small multipliers to keep numbers reasonable
+    const maxTable = Math.min(10, hi);
+    a = randInt(2, maxTable); b = randInt(1, Math.min(10, hi));
+    answer = a * b;
+  }
+
+  const wrongs = new Set();
+  while (wrongs.size < 3) {
+    let w;
+    const s = randInt(1, 4);
+    if (s === 1) w = answer + randInt(1, 5);
+    else if (s === 2) w = answer - randInt(1, Math.min(5, answer - 1));
+    else if (s === 3) w = answer + randInt(-4, 4) * (op === 'mul' ? 1 : 1);
+    else w = randInt(Math.max(0, answer - 8), answer + 8);
+    if (w > 0 && w !== answer && !wrongs.has(w)) wrongs.add(w);
+  }
+
+  return {
+    op, a, b, answer,
+    sym: op === 'add' ? '+' : op === 'sub' ? '−' : '×',
+    options: shuffle([answer, ...wrongs]),
+    hint: OP_HINTS[op][randInt(0, OP_HINTS[op].length - 1)],
+    emoji: Q_EMOJIS[op][randInt(0, Q_EMOJIS[op].length - 1)],
+  };
+}
+
+function generateQuestions() {
+  const ops = [...state.operations];
+  const perOp = Math.ceil(state.questionCount / ops.length);
+  let qs = [];
+  for (const op of ops) {
+    for (let i = 0; i < perOp; i++) qs.push(genQuestion(op));
+    state.breakdown[op].total = perOp;
+  }
+  return shuffle(qs).slice(0, state.questionCount);
+}
+
+// ── Results helpers ──
+function starsFor(s, t) { const p = s/t; return p===1?'⭐⭐⭐':p>=0.7?'⭐⭐':'⭐'; }
+function medalFor(s, t) { const p = s/t; return p===1?'🏆':p>=0.7?'🥈':p>=0.4?'🥉':'🎗️'; }
+function msgFor(s, t)   {
+  const p = s/t;
+  if (p===1)   return "Perfect! You're a Math Wizard! 🧙";
+  if (p>=0.8)  return "Outstanding work, Superstar! 🌟";
+  if (p>=0.6)  return "Great effort! Keep it up! 💪";
+  if (p>=0.4)  return "Good try! Practice makes perfect! 📚";
+  return "Don't give up! Every try makes you stronger! 🌈";
+}
+
+function confetti(count=70) {
+  const cols = ['#FFD700','#FF6B6B','#3ABEFF','#A855F7','#4ade80','#f472b6','#FB923C'];
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div'); el.className = 'confetti-piece';
+    el.style.left = randInt(5,95)+'vw';
+    el.style.background = cols[randInt(0,cols.length-1)];
+    el.style.animationDuration = (1.8+Math.random()*2.2)+'s';
+    el.style.animationDelay = (Math.random()*1.6)+'s';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 5000);
+  }
+}
+
+// ── Render ──
+function render() {
+  const sc = document.getElementById('screen');
+  if (state.screen==='setup') renderSetup(sc);
+  else if (state.screen==='game') renderGame(sc);
+  else renderResults(sc);
+}
+
+// ─── SETUP ───
+function renderSetup(el) {
+  const canStart = state.operations.size > 0;
+
+  // Build number options
+  const nums = [];
+  for (let i = 1; i <= 100; i++) nums.push(i);
+
+  const fromOpts = nums.map(n => `<option value="${n}" ${n===state.numFrom?'selected':''}>${n}</option>`).join('');
+  const toOpts   = nums.map(n => `<option value="${n}" ${n===state.numTo?'selected':''}>${n}</option>`).join('');
+
+  const mulDisabled = state.numTo < 2;
+
+  el.innerHTML = `
+    <div class="setup-card">
+
+      <div class="section-label">🔢 Number Range</div>
+      <div class="range-row">
+        <select class="styled-select" id="selFrom">${fromOpts}</select>
+        <span class="range-arrow">→</span>
+        <select class="styled-select" id="selTo">${toOpts}</select>
+      </div>
+
+      <div class="section-label">🎯 Pick Operations</div>
+      <div class="op-row">
+        <div class="op-btn op-add ${state.operations.has('add')?'selected':''}" id="opAdd">
+          <span class="op-check">✅</span>
+          <div class="op-btn-inner">
+            <div class="op-icon">+</div>
+            <span class="op-label">Addition</span>
+          </div>
+        </div>
+        <div class="op-btn op-sub ${state.operations.has('sub')?'selected':''}" id="opSub">
+          <span class="op-check">✅</span>
+          <div class="op-btn-inner">
+            <div class="op-icon">−</div>
+            <span class="op-label">Subtract</span>
+          </div>
+        </div>
+        <div class="op-btn op-mul ${state.operations.has('mul')?'selected':''}" id="opMul"
+             style="${mulDisabled?'opacity:0.3;pointer-events:none':''}">
+          <span class="op-check">✅</span>
+          <div class="op-btn-inner">
+            <div class="op-icon">×</div>
+            <span class="op-label">Multiply</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">📋 Questions</div>
+      <div class="qcount-row">
+        ${[5,10,15,20].map(n=>`<div class="qcount-btn ${state.questionCount===n?'selected':''}" data-q="${n}">${n}</div>`).join('')}
+      </div>
+
+      <button class="start-btn" id="startBtn" ${canStart?'':'disabled'}>🚀 Launch!</button>
+    </div>
+  `;
+
+  // Range dropdowns
+  el.querySelector('#selFrom').onchange = e => {
+    state.numFrom = parseInt(e.target.value);
+    if (state.numFrom >= state.numTo) { state.numTo = Math.min(100, state.numFrom + 1); }
+    render();
+  };
+  el.querySelector('#selTo').onchange = e => {
+    state.numTo = parseInt(e.target.value);
+    if (state.numTo <= state.numFrom) { state.numFrom = Math.max(1, state.numTo - 1); }
+    render();
+  };
+
+  // Op toggles
+  el.querySelector('#opAdd').onclick = () => { state.operations.has('add')?state.operations.delete('add'):state.operations.add('add'); render(); };
+  el.querySelector('#opSub').onclick = () => { state.operations.has('sub')?state.operations.delete('sub'):state.operations.add('sub'); render(); };
+  el.querySelector('#opMul').onclick = () => { state.operations.has('mul')?state.operations.delete('mul'):state.operations.add('mul'); render(); };
+
+  el.querySelectorAll('.qcount-btn').forEach(b => {
+    b.onclick = () => { state.questionCount = parseInt(b.dataset.q); render(); };
+  });
+
+  if (canStart) {
+    el.querySelector('#startBtn').onclick = () => {
+      state.breakdown = { add:{correct:0,total:0}, sub:{correct:0,total:0}, mul:{correct:0,total:0} };
+      state.questions = generateQuestions();
+      state.current = 0; state.score = 0; state.answered = false;
+      state.screen = 'game'; render();
+    };
+  }
+}
+
+// ─── GAME ───
+function renderGame(el) {
+  const q = state.questions[state.current];
+  const total = state.questions.length;
+  const progress = (state.current / total) * 100;
+  const opClass = q.op;
+  const opName = q.op==='add'?'Addition':q.op==='sub'?'Subtraction':'Multiply';
+
+  el.innerHTML = `
+    <div class="game-card">
+      <div class="hud">
+        <div class="hud-stat">
+          <span class="hud-val">${state.current+1}/${total}</span>
+          <span class="hud-label">Question</span>
+        </div>
+        <div class="hud-op-badge ${opClass}">
+          <span class="badge-sym">${q.sym}</span>
+          ${opName}
+        </div>
+        <div class="hud-stat">
+          <span class="hud-val">⭐ ${state.score}</span>
+          <span class="hud-label">Score</span>
+        </div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill ${opClass}" style="width:${progress}%"></div>
+      </div>
+
+      <div class="question-box ${opClass}">
+        <span class="q-emoji">${q.emoji}</span>
+
+        <!-- Column form: first number, operator + second number, divider, blank -->
+        <div class="q-column">
+          <!-- top number -->
+          <div class="q-col-row" style="justify-content:flex-end">
+            <span class="q-col-sym" style="visibility:hidden">${q.sym}</span>
+            <span class="q-col-num">${q.a}</span>
+          </div>
+          <!-- operator + second number -->
+          <div class="q-col-row">
+            <span class="q-col-sym ${opClass}">${q.sym}</span>
+            <span class="q-col-num">${q.b}</span>
+          </div>
+          <!-- divider line -->
+          <div class="q-divider ${opClass}"></div>
+          <!-- answer blank -->
+          <div class="q-blank-row" style="justify-content:flex-end">
+            <span class="q-col-sym" style="visibility:hidden">${q.sym}</span>
+            <span class="q-blank">?</span>
+          </div>
+        </div>
+
+        <div class="q-hint">${q.hint}</div>
+      </div>
+
+      <div class="opts-grid" id="optsGrid">
+        ${q.options.map(opt=>`<button class="opt-btn" data-val="${opt}">${opt}</button>`).join('')}
+      </div>
+      <div class="feedback-bar" id="fb"></div>
+      <button class="next-btn" id="nextBtn">${state.current<total-1?'Next Question →':'See Results 🎉'}</button>
+    </div>
+  `;
+
+  document.querySelectorAll('.opt-btn').forEach(btn => {
+    btn.onclick = () => {
+      if (state.answered) return;
+      state.answered = true;
+      const val = parseInt(btn.dataset.val);
+      const fb = document.getElementById('fb');
+      const next = document.getElementById('nextBtn');
+
+      if (val === q.answer) {
+        btn.classList.add('correct'); btn.textContent += ' ✓';
+        state.score++; state.breakdown[q.op].correct++;
+        const msgs = ['🎉 Fantastic!','⭐ Correct!','🚀 Amazing!','💫 You got it!','🌟 Superb!'];
+        fb.textContent = msgs[randInt(0, msgs.length-1)];
+        fb.className = 'feedback-bar good';
+      } else {
+        btn.classList.add('wrong');
+        document.querySelectorAll('.opt-btn').forEach(b => {
+          if (parseInt(b.dataset.val)===q.answer) { b.classList.add('correct'); b.textContent += ' ✓'; }
+        });
+        const bads = ['🤔 Not quite!','😅 Try next time!','💪 Almost there!'];
+        fb.innerHTML = bads[randInt(0,bads.length-1)] + ` <span style="color:rgba(255,255,255,0.4)">${q.a} ${q.sym} ${q.b} = ${q.answer}</span>`;
+        fb.className = 'feedback-bar bad';
+      }
+      document.querySelectorAll('.opt-btn').forEach(b => b.disabled=true);
+      next.classList.add('show');
+    };
+  });
+
+  document.getElementById('nextBtn').onclick = () => {
+    if (state.current < state.questions.length-1) {
+      state.current++; state.answered=false; render();
+    } else {
+      state.screen='results'; render();
+    }
+  };
+}
+
+// ─── RESULTS ───
+function renderResults(el) {
+  const total = state.questions.length;
+  const pct = state.score/total;
+  if (pct>=0.6) confetti(pct===1?100:65);
+  const ops = [...state.operations];
+  const bkHTML = ops.map(op => {
+    const bd = state.breakdown[op];
+    const sym = op==='add'?'+':op==='sub'?'−':'×';
+    return `<div class="breakdown-pill ${op}-pill">
+      <span class="bp-num">${sym} ${bd.correct}/${bd.total}</span>
+      <span class="bp-label">${op==='add'?'Addition':op==='sub'?'Subtraction':'Multiply'}</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="results-card">
+      <span class="results-medal">${medalFor(state.score,total)}</span>
+      <div class="results-title">Mission Complete!</div>
+      <div class="results-score">${state.score}</div>
+      <div class="results-denom">out of ${total} correct</div>
+      <div class="results-stars">${starsFor(state.score,total)}</div>
+      <div class="results-msg">${msgFor(state.score,total)}</div>
+      ${ops.length>1?`<div class="results-breakdown">${bkHTML}</div>`:''}
+      <div class="btn-row">
+        <button class="retry-btn" id="retryBtn">🔄 Play Again</button>
+        <button class="menu-btn" id="menuBtn">🏠 Menu</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('retryBtn').onclick = () => {
+    state.breakdown={add:{correct:0,total:0},sub:{correct:0,total:0},mul:{correct:0,total:0}};
+    state.questions=generateQuestions(); state.current=0; state.score=0; state.answered=false;
+    state.screen='game'; render();
+  };
+  document.getElementById('menuBtn').onclick = () => { state.screen='setup'; render(); };
+}
+
+render();
+</script>
+</body>
+</html>
